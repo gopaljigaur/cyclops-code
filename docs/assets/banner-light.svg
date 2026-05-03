@@ -2,17 +2,17 @@
   <rect width="900" height="200" fill="#ffffff" rx="12"/>
 
   <!-- outer ring -->
-  <circle cx="95" cy="100" r="46" fill="none" stroke="#58a6ff" stroke-width="3"/>
+  <circle cx="196" cy="100" r="46" fill="none" stroke="#58a6ff" stroke-width="3"/>
   <!-- iris -->
-  <circle cx="95" cy="100" r="28" fill="none" stroke="#58a6ff" stroke-width="2" opacity="0.6"/>
+  <circle cx="196" cy="100" r="28" fill="none" stroke="#58a6ff" stroke-width="2" opacity="0.6"/>
   <!-- pupil -->
-  <circle cx="95" cy="100" r="14" fill="#58a6ff"/>
+  <circle cx="196" cy="100" r="14" fill="#58a6ff"/>
   <!-- shine -->
-  <circle cx="103" cy="90" r="5" fill="#cce7ff" opacity="0.85"/>
+  <circle cx="204" cy="90" r="5" fill="#cce7ff" opacity="0.85"/>
 
   <!-- wordmark -->
   <text
-    x="172" y="116"
+    x="272" y="116"
     font-family="'Courier New', Courier, monospace"
     font-size="68"
     font-weight="700"
@@ -21,7 +21,7 @@
 
   <!-- tagline -->
   <text
-    x="172" y="154"
+    x="279" y="154"
     font-family="'Courier New', Courier, monospace"
     font-size="17"
     fill="#57606a"
