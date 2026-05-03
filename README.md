@@ -20,7 +20,7 @@
 
 ---
 
-cyclops code is an AI coding agent that runs in your terminal. It reads and edits files, runs shell commands, searches codebases, and fetches web content — all driven by the model of your choice. It works with every model [LiteLLM](https://github.com/BerriAI/litellm) supports: Claude, GPT-4o, Gemini, Llama via Ollama, and 100+ more.
+cyclops code is an AI coding agent that runs in your terminal. It reads and edits files, runs shell commands, searches codebases, and fetches web content. Any model. It works with every model [LiteLLM](https://github.com/BerriAI/litellm) supports: Claude, GPT-4o, Gemini, Llama via Ollama, and 100+ more.
 
 ## Install
 
@@ -29,7 +29,21 @@ pip install cyclops-code
 ```
 
 ```bash
-uv add cyclops-code
+uv tool install cyclops-code
+```
+
+```bash
+pipx install cyclops-code
+```
+
+**Development (local):**
+
+```bash
+git clone https://github.com/gopaljigaur/cyclops-code
+cd cyclops-code
+uv sync
+uv add --editable ../cyclops  # optional: use local cyclops-ai
+uv run cyclops
 ```
 
 ## Usage
