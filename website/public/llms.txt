@@ -1,0 +1,16 @@
+# Cyclops Code
+
+> A coding agent for your terminal. Any model.
+
+Cyclops Code is an AI coding agent that runs in your terminal. It reads and edits files, runs shell commands, searches codebases, and fetches web content. Works with every model LiteLLM supports: Claude, GPT-4o, Gemini, Llama via Ollama, and 100+ more.
+
+## Docs
+
+- [Getting Started](https://code.gopalji.me/getting-started/): Install with uv, set API key, first run, pick a model
+- [The REPL](https://code.gopalji.me/guides/repl/): Keyboard shortcuts, slash commands, ! shell prefix, CLI flags
+- [Tool Approval](https://code.gopalji.me/guides/tool-approval/): Review mode (approve each tool call) vs auto mode
+- [Built-in Tools](https://code.gopalji.me/guides/tools/): Read, Write, Edit, Bash, Glob, Grep, WebFetch, Plan, PlanUpdate
+- [MCP Servers](https://code.gopalji.me/guides/mcp/): Connect external tool sources via Model Context Protocol
+- [Models](https://code.gopalji.me/guides/models/): Anthropic, OpenAI, Groq, Gemini, Ollama, Together AI provider setup
+- [Configuration](https://code.gopalji.me/guides/configuration/): ~/.cyclops/config.json reference, all settings
+- [Sessions](https://code.gopalji.me/guides/sessions/): /save, /load, /sessions, /compact to manage conversation history
