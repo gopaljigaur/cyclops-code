@@ -58,7 +58,7 @@ class Config:
 
     def __init__(
         self,
-        model: str = "anthropic/claude-3-5-haiku-20241022",
+        model: str = "anthropic/claude-haiku-4-5-20251001",
         stream: bool = True,
         max_iterations: int = 15,
         temperature: float = 0.2,
@@ -82,7 +82,7 @@ class Config:
                 if isinstance(s, dict) and "name" in s and "command" in s
             ]
             return cls(
-                model=data.get("model", "anthropic/claude-3-5-haiku-20241022"),
+                model=data.get("model", "anthropic/claude-haiku-4-5-20251001"),
                 stream=data.get("stream", True),
                 max_iterations=data.get("max_iterations", 15),
                 temperature=data.get("temperature", 0.2),
