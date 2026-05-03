@@ -40,12 +40,16 @@ class EditTool(BaseTool):
             tmp.unlink(missing_ok=True)
             return f"Error writing {path}: {e}"
 
-        diff = list(difflib.unified_diff(
-            old_string.splitlines(keepends=True),
-            new_string.splitlines(keepends=True),
-            lineterm="",
-        ))
-        removed = sum(1 for l in diff if l.startswith("-") and not l.startswith("---"))
-        added = sum(1 for l in diff if l.startswith("+") and not l.startswith("+++"))
+        diff = list(
+            difflib.unified_diff(
+                old_string.splitlines(keepends=True),
+                new_string.splitlines(keepends=True),
+                lineterm="",
+            )
+        )
+        removed = sum(
+            1 for ln in diff if ln.startswith("-") and not ln.startswith("---")
+        )
+        added = sum(1 for ln in diff if ln.startswith("+") and not ln.startswith("+++"))
         diff_text = "".join(diff)
         return f"DIFF:{path}\n-{removed} +{added}\n{diff_text}"

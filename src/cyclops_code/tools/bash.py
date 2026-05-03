@@ -36,6 +36,9 @@ class BashTool(BaseTool):
         combined = (stdout + stderr).strip()
 
         if len(combined) > _MAX_OUTPUT:
-            combined = combined[:_MAX_OUTPUT] + f"\n\n[Truncated: output exceeded {_MAX_OUTPUT} chars]"
+            combined = (
+                combined[:_MAX_OUTPUT]
+                + f"\n\n[Truncated: output exceeded {_MAX_OUTPUT} chars]"
+            )
 
         return f"[exit {code}]\n{combined}"
