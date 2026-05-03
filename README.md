@@ -158,7 +158,7 @@ Config is stored at `~/.cyclops/config.json`:
 
 ```json
 {
-  "model": "anthropic/claude-3-5-haiku-20241022",
+  "model": "anthropic/claude-haiku-4-5-20251001",
   "stream": true,
   "max_iterations": 15,
   "temperature": 0.2,

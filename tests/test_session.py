@@ -18,7 +18,7 @@ class TestSession:
         session, sessions_dir = self._session_with_dir(tmp_path)
         history = [{"role": "user", "content": "hello"}]
 
-        path = session.save("my-session", history, "claude-3-5-haiku-20241022")
+        path = session.save("my-session", history, "claude-haiku-4-5-20251001")
 
         saved = sessions_dir / "my-session.json"
         assert saved.exists()
