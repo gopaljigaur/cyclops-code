@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-  site: 'https://cyclops-code.gopalji.me',
+  site: 'https://code.gopalji.me',
   integrations: [
     starlight({
       title: 'Cyclops Code',
