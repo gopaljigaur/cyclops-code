@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import getpass
-import json
 import random
 import socket
 import subprocess
@@ -20,7 +19,13 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import Layout
-from prompt_toolkit.layout.containers import Float, FloatContainer, HSplit, VerticalAlign, Window
+from prompt_toolkit.layout.containers import (
+    Float,
+    FloatContainer,
+    HSplit,
+    VerticalAlign,
+    Window,
+)
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.menus import CompletionsMenu
 from prompt_toolkit.layout.processors import BeforeInput
@@ -31,34 +36,49 @@ from rich.markdown import Markdown
 from rich.spinner import Spinner
 from rich.text import Text
 
-from cyclops import AgentHooks
+from cyclops import Agent, AgentHooks
 from cyclops_code.config import Config
 from cyclops_code.session import Session
 
 _SLASH_COMMANDS: dict[str, str] = {
-    "/help":     "List all commands",
-    "/clear":    "Wipe conversation history and start fresh",
-    "/compact":  "Summarize history via LLM, replace with summary",
-    "/model":    "Switch model, type to filter, Enter to confirm",
-    "/mode":     "Toggle auto / review tool approval  (or Shift+Tab)",
-    "/mcp":      "Manage MCP servers  list|add|remove|connect|disconnect",
-    "/save":     "Save session to disk  [name]",
-    "/load":     "Load a saved session  <name>",
+    "/help": "List all commands",
+    "/clear": "Wipe conversation history and start fresh",
+    "/compact": "Summarize history via LLM, replace with summary",
+    "/model": "Switch model, type to filter, Enter to confirm",
+    "/mode": "Toggle auto / review tool approval  (or Shift+Tab)",
+    "/mcp": "Manage MCP servers  list|add|remove|connect|disconnect",
+    "/save": "Save session to disk  [name]",
+    "/load": "Load a saved session  <name>",
     "/sessions": "List saved sessions",
-    "/cost":     "Show total token usage and cost",
-    "/exit":     "Quit",
+    "/cost": "Show total token usage and cost",
+    "/exit": "Quit",
 }
 
-_PICKER_PROVIDERS = {"anthropic", "openai", "gemini", "groq", "deepseek", "mistral", "ollama"}
+_PICKER_PROVIDERS = {
+    "anthropic",
+    "openai",
+    "gemini",
+    "groq",
+    "deepseek",
+    "mistral",
+    "ollama",
+}
 
 _WORKING_WORDS = [
-    "Thinking", "Working", "Reasoning", "Computing",
-    "Pondering", "Processing", "Analyzing", "Deliberating",
+    "Thinking",
+    "Working",
+    "Reasoning",
+    "Computing",
+    "Pondering",
+    "Processing",
+    "Analyzing",
+    "Deliberating",
 ]
 
 
 def _get_picker_models() -> list[tuple[str, str, str]]:
     import litellm
+
     results: list[tuple[str, str, str]] = []
     seen: set[str] = set()
 
@@ -84,7 +104,9 @@ def _get_picker_models() -> list[tuple[str, str, str]]:
 
     # Ollama: query local server — litellm has no SDK for this (issue #5894)
     try:
-        import urllib.request, json as _json
+        import urllib.request
+        import json as _json
+
         with urllib.request.urlopen("http://localhost:11434/api/tags", timeout=1) as r:
             for m in _json.loads(r.read()).get("models", []):
                 name = m["name"]
@@ -102,7 +124,7 @@ def _get_picker_models() -> list[tuple[str, str, str]]:
 def _short_path(cwd: str) -> str:
     home = str(Path.home())
     if cwd.startswith(home):
-        return "~" + cwd[len(home):]
+        return "~" + cwd[len(home) :]
     return cwd
 
 
@@ -121,7 +143,10 @@ def _git_branch(cwd: str) -> str:
     try:
         r = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            cwd=cwd, capture_output=True, text=True, timeout=2,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=2,
         )
         result = r.stdout.strip()
         result = result if result and result != "HEAD" else ""
@@ -131,7 +156,9 @@ def _git_branch(cwd: str) -> str:
     return result
 
 
-def _make_agent(config: Config, cwd: str, hooks: AgentHooks, extra_tools: list | None = None):
+def _make_agent(
+    config: Config, cwd: str, hooks: AgentHooks, extra_tools: list | None = None
+):
     from cyclops import Agent, AgentConfig
     from cyclops_code.prompt import build_system_prompt
     from cyclops_code.tools import ALL_TOOLS
@@ -150,6 +177,7 @@ def _make_agent(config: Config, cwd: str, hooks: AgentHooks, extra_tools: list |
 
 
 # ── Completers ────────────────────────────────────────────────────────────────
+
 
 class SlashCompleter(Completer):
     def get_completions(self, document, complete_event):
@@ -171,7 +199,12 @@ class ModelCompleter(Completer):
     def get_completions(self, document, complete_event):
         query = document.text_before_cursor.lower().strip()
         for provider, name, model_id in _get_picker_models():
-            if not query or query in model_id.lower() or query in name.lower() or query in provider.lower():
+            if (
+                not query
+                or query in model_id.lower()
+                or query in name.lower()
+                or query in provider.lower()
+            ):
                 yield Completion(
                     model_id,
                     start_position=-len(document.text_before_cursor),
@@ -181,6 +214,7 @@ class ModelCompleter(Completer):
 
 
 # ── Hooks ─────────────────────────────────────────────────────────────────────
+
 
 class CyclopsHooks(AgentHooks):
     def __init__(self, repl: "CyclopsRepl") -> None:
@@ -215,6 +249,7 @@ class CyclopsHooks(AgentHooks):
     def on_llm_end(self, response) -> None:
         try:
             import litellm
+
             cost = litellm.completion_cost(completion_response=response) or 0.0
             tokens = getattr(response.usage, "total_tokens", 0) or 0
             self._repl.total_cost += cost
@@ -224,6 +259,7 @@ class CyclopsHooks(AgentHooks):
 
 
 # ── Rich renderers ────────────────────────────────────────────────────────────
+
 
 def _render_diff(console: Console, result: str) -> None:
     lines = result.splitlines()
@@ -273,6 +309,7 @@ def _render_plan_update(console: Console, args: dict) -> None:
 
 # ── Main REPL ─────────────────────────────────────────────────────────────────
 
+
 class CyclopsRepl:
     def __init__(self, config: Config, cwd: str) -> None:
         self.config = config
@@ -290,7 +327,7 @@ class CyclopsRepl:
         self._host = socket.gethostname().split(".")[0]
         self._mcp_bridge = None
         self._mcp_server_tools: dict[str, list] = {}
-        self.agent = None
+        self.agent: Agent | None = None
 
     def _status_line_str(self) -> str:
         branch = _git_branch(self.cwd)
@@ -315,6 +352,7 @@ class CyclopsRepl:
     def _get_or_create_bridge(self):
         if self._mcp_bridge is None:
             from cyclops.mcp.bridge import MCPBridge
+
             self._mcp_bridge = MCPBridge()
         return self._mcp_bridge
 
@@ -361,19 +399,34 @@ class CyclopsRepl:
 
         layout = Layout(
             FloatContainer(
-                content=HSplit([
-                    Window(height=1, content=FormattedTextControl(_sep), style="class:sep"),
-                    Window(
-                        content=BufferControl(
-                            buffer=buf,
-                            input_processors=[BeforeInput("❯ ")],
+                content=HSplit(
+                    [
+                        Window(
+                            height=1,
+                            content=FormattedTextControl(_sep),
+                            style="class:sep",
                         ),
-                        wrap_lines=True,
-                        dont_extend_height=True,
-                    ),
-                    Window(height=1, content=FormattedTextControl(_sep), style="class:sep"),
-                    Window(height=1, content=FormattedTextControl(self._status_line_str), style="class:status"),
-                ], align=VerticalAlign.TOP),
+                        Window(
+                            content=BufferControl(
+                                buffer=buf,
+                                input_processors=[BeforeInput("❯ ")],
+                            ),
+                            wrap_lines=True,
+                            dont_extend_height=True,
+                        ),
+                        Window(
+                            height=1,
+                            content=FormattedTextControl(_sep),
+                            style="class:sep",
+                        ),
+                        Window(
+                            height=1,
+                            content=FormattedTextControl(self._status_line_str),
+                            style="class:status",
+                        ),
+                    ],
+                    align=VerticalAlign.TOP,
+                ),
                 floats=[
                     Float(
                         xcursor=True,
@@ -384,19 +437,23 @@ class CyclopsRepl:
             )
         )
 
-        _style = Style.from_dict({
-            "sep":                                "#444444",
-            "status":                             "#555555",
-            "completion-menu":                    "bg:#111111 #888888",
-            "completion-menu.completion":         "bg:#111111 #888888",
-            "completion-menu.completion.current": "bg:#1a3060 bold #ffffff",
-            "completion-menu.meta":               "bg:#111111 #555555",
-            "completion-menu.meta.current":       "bg:#1a3060 #888888",
-            "scrollbar.background":               "bg:#111111",
-            "scrollbar.button":                   "bg:#333333",
-        })
+        _style = Style.from_dict(
+            {
+                "sep": "#444444",
+                "status": "#555555",
+                "completion-menu": "bg:#111111 #888888",
+                "completion-menu.completion": "bg:#111111 #888888",
+                "completion-menu.completion.current": "bg:#1a3060 bold #ffffff",
+                "completion-menu.meta": "bg:#111111 #555555",
+                "completion-menu.meta.current": "bg:#1a3060 #888888",
+                "scrollbar.background": "bg:#111111",
+                "scrollbar.button": "bg:#333333",
+            }
+        )
 
-        app = Application(layout=layout, key_bindings=kb, style=_style, full_screen=False)
+        app: Application = Application(
+            layout=layout, key_bindings=kb, style=_style, full_screen=False
+        )
         return app, buf
 
     def run(self) -> None:
@@ -458,16 +515,30 @@ class CyclopsRepl:
 
     def _connect_mcp_server(self, server_cfg, *, quiet: bool = False) -> int:
         from cyclops.mcp.tools import tools_from_server
+
         bridge = self._get_or_create_bridge()
         try:
-            _, tools = tools_from_server(bridge, server_cfg.name, server_cfg.full_command, env=server_cfg.env or None)
+            _, tools = tools_from_server(
+                bridge,
+                server_cfg.name,
+                server_cfg.full_command,
+                env=server_cfg.env or None,
+            )
             self._mcp_server_tools[server_cfg.name] = tools
             if not quiet:
                 label = f"{len(tools)} tool{'s' if len(tools) != 1 else ''}"
-                self.console.print(Text.assemble(("  mcp  ", "dim"), (server_cfg.name, "green"), (f"  {label}", "dim")))
+                self.console.print(
+                    Text.assemble(
+                        ("  mcp  ", "dim"),
+                        (server_cfg.name, "green"),
+                        (f"  {label}", "dim"),
+                    )
+                )
             return len(tools)
         except Exception as exc:
-            self.console.print(f"[red]mcp connect error ({server_cfg.name}):[/red] {exc}")
+            self.console.print(
+                f"[red]mcp connect error ({server_cfg.name}):[/red] {exc}"
+            )
             return 0
 
     def _disconnect_mcp_server(self, name: str) -> bool:
@@ -479,13 +550,14 @@ class CyclopsRepl:
 
     def _rebuild_agent(self) -> None:
         hooks = CyclopsHooks(self)
-        history = list(self.agent.messages) if self.agent else []
+        history: list[dict] = list(self.agent.messages) if self.agent else []
         self.agent = _make_agent(self.config, self.cwd, hooks, self._mcp_tools)
         for msg in history:
             self.agent._history.append(msg)
 
-    def _print_header(self, agent) -> None:
+    def _print_header(self, agent: Agent) -> None:
         from cyclops_code import __version__
+
         branch = _git_branch(self.cwd)
         self.console.print()
         t = Text()
@@ -499,7 +571,7 @@ class CyclopsRepl:
         self.console.print(t)
         self.console.print()
 
-    def _run_generation(self, text: str, agent) -> None:
+    def _run_generation(self, text: str, agent: Agent) -> None:
         self._cancelled = False
         start = time.monotonic()
         chunks: list[str] = []
@@ -514,7 +586,9 @@ class CyclopsRepl:
                 yield Text(status_fn(), style="#555555")
 
         try:
-            with Live(_Display(), console=self.console, refresh_per_second=12, transient=True) as live:
+            with Live(
+                _Display(), console=self.console, refresh_per_second=12, transient=True
+            ) as live:
                 self._current_live = live
                 for chunk in agent.stream(text):
                     if self._cancelled:
@@ -544,8 +618,12 @@ class CyclopsRepl:
         self.console.print(Text(f"$ {cmd}", style="dim #888888"))
         try:
             proc = subprocess.Popen(
-                cmd, shell=True, cwd=self.cwd,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                cmd,
+                shell=True,
+                cwd=self.cwd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
             )
             assert proc.stdout
             for line in proc.stdout:
@@ -596,8 +674,10 @@ class CyclopsRepl:
         def _cancel(event):
             event.app.exit(result=-1)
 
-        picker = Application(
-            layout=Layout(Window(content=FormattedTextControl(_text), height=len(options))),
+        picker: Application = Application(
+            layout=Layout(
+                Window(content=FormattedTextControl(_text), height=len(options))
+            ),
             key_bindings=kb,
             full_screen=False,
         )
@@ -617,7 +697,7 @@ class CyclopsRepl:
 
     # ── Slash commands ────────────────────────────────────────────────────────
 
-    def _handle_slash(self, text: str, agent, app: Application) -> None:
+    def _handle_slash(self, text: str, agent: Agent, app: Application) -> None:
         parts = text.strip().split(maxsplit=1)
         command = parts[0].lower()
         arg = parts[1] if len(parts) > 1 else ""
@@ -654,7 +734,10 @@ class CyclopsRepl:
                 )
                 try:
                     import litellm
-                    with self.console.status("Compacting...", spinner="dots", spinner_style="bold #5fafff"):
+
+                    with self.console.status(
+                        "Compacting...", spinner="dots", spinner_style="bold #5fafff"
+                    ):
                         resp = litellm.completion(
                             model=self.config.model,
                             messages=[{"role": "user", "content": prompt}],
@@ -662,10 +745,18 @@ class CyclopsRepl:
                         )
                     summary = resp.choices[0].message.content
                     agent.reset()
-                    agent._history.append({"role": "assistant", "content": f"[Conversation summary]\n{summary}"})
-                    self.console.print(Text.assemble(
-                        ("compacted → ", "dim"), (f"{len(msgs)} msgs → summary", "green"),
-                    ))
+                    agent._history.append(
+                        {
+                            "role": "assistant",
+                            "content": f"[Conversation summary]\n{summary}",
+                        }
+                    )
+                    self.console.print(
+                        Text.assemble(
+                            ("compacted → ", "dim"),
+                            (f"{len(msgs)} msgs → summary", "green"),
+                        )
+                    )
                 except Exception as e:
                     self.console.print(f"[red]compact error:[/red] {e}")
 
@@ -683,11 +774,17 @@ class CyclopsRepl:
                 self._model_picker(agent)
 
         elif command == "/save":
-            name = arg.strip() or datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
+            name = arg.strip() or datetime.now(tz=timezone.utc).strftime(
+                "%Y%m%d_%H%M%S"
+            )
             path = self.session_manager.save(name, agent.messages, self.config.model)
-            self.console.print(Text.assemble(
-                ("saved → ", "dim"), (name, "green"), (f"  ({path})", "dim"),
-            ))
+            self.console.print(
+                Text.assemble(
+                    ("saved → ", "dim"),
+                    (name, "green"),
+                    (f"  ({path})", "dim"),
+                )
+            )
 
         elif command == "/load":
             if not arg:
@@ -699,10 +796,13 @@ class CyclopsRepl:
                     for msg in data.get("history", []):
                         agent._history.append(msg)
                     model = data.get("model", self.config.model)
-                    self.console.print(Text.assemble(
-                        ("loaded → ", "dim"), (arg.strip(), "green"),
-                        (f"  ({len(agent.messages)} msgs, {model})", "dim"),
-                    ))
+                    self.console.print(
+                        Text.assemble(
+                            ("loaded → ", "dim"),
+                            (arg.strip(), "green"),
+                            (f"  ({len(agent.messages)} msgs, {model})", "dim"),
+                        )
+                    )
                 except (FileNotFoundError, ValueError) as e:
                     self.console.print(f"[red]{e}[/red]")
 
@@ -715,10 +815,14 @@ class CyclopsRepl:
                     self.console.print(f"[yellow]{name}[/yellow]")
 
         elif command == "/cost":
-            self.console.print(Text.assemble(
-                ("tokens → ", "dim"), (f"{self.total_tokens:,}", "green"),
-                ("   cost → ", "dim"), (f"${self.total_cost:.4f}", "green"),
-            ))
+            self.console.print(
+                Text.assemble(
+                    ("tokens → ", "dim"),
+                    (f"{self.total_tokens:,}", "green"),
+                    ("   cost → ", "dim"),
+                    (f"${self.total_cost:.4f}", "green"),
+                )
+            )
 
         elif command in ("/exit", "/quit"):
             raise SystemExit(0)
@@ -755,13 +859,16 @@ class CyclopsRepl:
         elif sub == "add":
             rparts = rest.split(maxsplit=1)
             if len(rparts) < 2:
-                self.console.print("[red]usage:[/red] /mcp add <name> <command> [args...]")
+                self.console.print(
+                    "[red]usage:[/red] /mcp add <name> <command> [args...]"
+                )
                 return
             name = rparts[0]
             cmd_parts = rparts[1].split()
             command = cmd_parts[0]
             cmd_args = cmd_parts[1:]
             from cyclops_code.config import MCPServerConfig
+
             server_cfg = MCPServerConfig(name=name, command=command, args=cmd_args)
             self.config.add_mcp_server(server_cfg)
             n = self._connect_mcp_server(server_cfg)
@@ -777,7 +884,9 @@ class CyclopsRepl:
             removed = self.config.remove_mcp_server(name)
             if removed:
                 self._rebuild_agent()
-                self.console.print(Text.assemble(("mcp remove  ", "dim"), (name, "green")))
+                self.console.print(
+                    Text.assemble(("mcp remove  ", "dim"), (name, "green"))
+                )
             else:
                 self.console.print(f"[red]not found:[/red] {name}")
 
@@ -788,7 +897,9 @@ class CyclopsRepl:
                 return
             cfg = next((s for s in self.config.mcp_servers if s.name == name), None)
             if cfg is None:
-                self.console.print(f"[red]not configured:[/red] {name}  (use /mcp add first)")
+                self.console.print(
+                    f"[red]not configured:[/red] {name}  (use /mcp add first)"
+                )
                 return
             n = self._connect_mcp_server(cfg)
             if n > 0:
@@ -801,22 +912,29 @@ class CyclopsRepl:
                 return
             if self._disconnect_mcp_server(name):
                 self._rebuild_agent()
-                self.console.print(Text.assemble(("mcp disconnect  ", "dim"), (name, "green")))
+                self.console.print(
+                    Text.assemble(("mcp disconnect  ", "dim"), (name, "green"))
+                )
             else:
                 self.console.print(f"[red]not connected:[/red] {name}")
 
         else:
-            self.console.print(f"[red]unknown mcp subcommand:[/red] {sub}  (list|add|remove|connect|disconnect)")
+            self.console.print(
+                f"[red]unknown mcp subcommand:[/red] {sub}  (list|add|remove|connect|disconnect)"
+            )
 
-    def _model_picker(self, agent) -> None:
+    def _model_picker(self, agent: Agent) -> None:
         models = _get_picker_models()
         current = self.config.model
-        self.console.print(Text.assemble(
-            ("  current  ", "dim"), (current, "#888888"),
-            ("   ·  type to filter", "dim"),
-        ))
+        self.console.print(
+            Text.assemble(
+                ("  current  ", "dim"),
+                (current, "#888888"),
+                ("   ·  type to filter", "dim"),
+            )
+        )
 
-        model_session = PromptSession(
+        model_session: PromptSession = PromptSession(
             completer=ModelCompleter(),
             complete_while_typing=True,
         )
@@ -840,7 +958,7 @@ class CyclopsRepl:
 
         self.console.print(f"[red]no match:[/red] {choice}")
 
-    def _set_model(self, model_id: str, agent) -> None:
+    def _set_model(self, model_id: str, agent: Agent) -> None:
         self.config.model = model_id
         self.config.save()
         agent.config.model = model_id
@@ -849,31 +967,52 @@ class CyclopsRepl:
 
 # ── First-run setup ───────────────────────────────────────────────────────────
 
+
 def _first_run_setup(config: Config, console: Console) -> None:
     console.print()
-    console.print(Text.assemble(
-        ("( ◉ )", "bold #58a6ff"), ("  cyclops", "bold white"), ("  — first run setup\n", "dim"),
-    ))
+    console.print(
+        Text.assemble(
+            ("( ◉ )", "bold #58a6ff"),
+            ("  cyclops", "bold white"),
+            ("  — first run setup\n", "dim"),
+        )
+    )
     console.rule(style="#444444")
     console.print()
     console.print("[dim]Choose a model to get started.[/dim]")
-    console.print("[dim]Set API keys via environment variables (ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.).[/dim]")
+    console.print(
+        "[dim]Set API keys via environment variables (ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.).[/dim]"
+    )
     console.print()
 
     models = _get_picker_models()
-    for i, (provider, name, model_id) in enumerate(models[:30]):  # cap at 30 for first run
+    for i, (provider, name, model_id) in enumerate(
+        models[:30]
+    ):  # cap at 30 for first run
         is_default = model_id == config.model
         num = Text(f"  {i+1:>3}. ", style="dim")
         if is_default:
-            row = Text.assemble(num, ("● ", "bold #58a6ff"), (f"{provider:<12} ", "dim"), (name, "bold white"), (" (default)", "dim"))
+            row = Text.assemble(
+                num,
+                ("● ", "bold #58a6ff"),
+                (f"{provider:<12} ", "dim"),
+                (name, "bold white"),
+                (" (default)", "dim"),
+            )
         else:
-            row = Text.assemble(num, ("  ", ""), (f"{provider:<12} ", "dim"), (name, "#888888"))
+            row = Text.assemble(
+                num, ("  ", ""), (f"{provider:<12} ", "dim"), (name, "#888888")
+            )
         console.print(row)
 
     console.print()
-    model_session = PromptSession(completer=ModelCompleter(), complete_while_typing=True)
+    model_session: PromptSession = PromptSession(
+        completer=ModelCompleter(), complete_while_typing=True
+    )
     try:
-        choice = model_session.prompt("  Select model (Enter to keep default) ❯ ").strip()
+        choice = model_session.prompt(
+            "  Select model (Enter to keep default) ❯ "
+        ).strip()
     except (KeyboardInterrupt, EOFError):
         choice = ""
 
@@ -895,6 +1034,7 @@ def _first_run_setup(config: Config, console: Console) -> None:
 
 
 # ── Entrypoint wrapper ────────────────────────────────────────────────────────
+
 
 class REPL:
     """Thin wrapper kept for cli.py compatibility."""

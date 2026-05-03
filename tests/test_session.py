@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from cyclops_code.config import Config
 from cyclops_code.session import Session
 
 
@@ -11,7 +10,6 @@ class TestSession:
         sessions_dir = tmp_path / "sessions"
         sessions_dir.mkdir(parents=True, exist_ok=True)
 
-        config = Config()
         session = Session.__new__(Session)
         session._sessions_dir = sessions_dir
         return session, sessions_dir

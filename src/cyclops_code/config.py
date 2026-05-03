@@ -28,7 +28,12 @@ class MCPServerConfig:
         self.env = env or {}
 
     def to_dict(self) -> dict[str, Any]:
-        return {"name": self.name, "command": self.command, "args": self.args, "env": self.env}
+        return {
+            "name": self.name,
+            "command": self.command,
+            "args": self.args,
+            "env": self.env,
+        }
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "MCPServerConfig":

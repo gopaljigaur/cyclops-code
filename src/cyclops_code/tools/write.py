@@ -23,5 +23,7 @@ class WriteTool(BaseTool):
             tmp.unlink(missing_ok=True)
             return f"Error writing {path}: {e}"
 
-        line_count = content.count("\n") + (1 if content and not content.endswith("\n") else 0)
+        line_count = content.count("\n") + (
+            1 if content and not content.endswith("\n") else 0
+        )
         return f"Wrote {line_count} lines to {path}"

@@ -1,6 +1,5 @@
 import html.parser
 import re
-from typing import Optional
 
 import httpx
 
@@ -76,6 +75,9 @@ class WebFetchTool(BaseTool):
             text = raw.strip()
 
         if len(text) > _MAX_CHARS:
-            text = text[:_MAX_CHARS] + f"\n\n[Truncated: showing {_MAX_CHARS} of {len(text)} chars]"
+            text = (
+                text[:_MAX_CHARS]
+                + f"\n\n[Truncated: showing {_MAX_CHARS} of {len(text)} chars]"
+            )
 
         return f"[{url}]\n\n{text}"
