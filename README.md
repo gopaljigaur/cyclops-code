@@ -25,15 +25,7 @@ cyclops code is an AI coding agent that runs in your terminal. It reads and edit
 ## Install
 
 ```bash
-pip install cyclops-code
-```
-
-```bash
 uv tool install cyclops-code
-```
-
-```bash
-pipx install cyclops-code
 ```
 
 **Development (local):**

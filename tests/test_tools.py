@@ -1,8 +1,6 @@
-import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 
 from cyclops_code.tools.bash import BashTool
 from cyclops_code.tools.edit import EditTool
@@ -116,7 +114,9 @@ class TestEditTool:
             new_string="return 42",
         )
 
-        assert result == f"Edited {f}"
+        assert result.startswith(f"DIFF:{f}")
+        assert "-return 1" in result
+        assert "+return 42" in result
         assert f.read_text() == "def foo():\n    return 42\n"
 
     async def test_error_on_zero_matches(self, tmp_path: Path) -> None:
@@ -265,7 +265,9 @@ class TestGrepTool:
         (tmp_path / "skip.txt").write_text("target = 1\n")
 
         tool = GrepTool()
-        result = await tool.execute(pattern="target", path=str(tmp_path), include="*.py")
+        result = await tool.execute(
+            pattern="target", path=str(tmp_path), include="*.py"
+        )
 
         assert "match.py" in result
         assert "skip.txt" not in result
@@ -294,7 +296,9 @@ class TestWebFetchTool:
         mock_client.__aexit__ = AsyncMock(return_value=False)
         mock_client.get = AsyncMock(return_value=mock_response)
 
-        with patch("cyclops_code.tools.web_fetch.httpx.AsyncClient", return_value=mock_client):
+        with patch(
+            "cyclops_code.tools.web_fetch.httpx.AsyncClient", return_value=mock_client
+        ):
             tool = WebFetchTool()
             result = await tool.execute(url="https://example.com")
 
@@ -312,7 +316,9 @@ class TestWebFetchTool:
         mock_client.__aexit__ = AsyncMock(return_value=False)
         mock_client.get = AsyncMock(return_value=mock_response)
 
-        with patch("cyclops_code.tools.web_fetch.httpx.AsyncClient", return_value=mock_client):
+        with patch(
+            "cyclops_code.tools.web_fetch.httpx.AsyncClient", return_value=mock_client
+        ):
             tool = WebFetchTool()
             result = await tool.execute(url="https://example.com")
 
@@ -328,7 +334,9 @@ class TestWebFetchTool:
         mock_client.__aexit__ = AsyncMock(return_value=False)
         mock_client.get = AsyncMock(side_effect=httpx.TimeoutException("timeout"))
 
-        with patch("cyclops_code.tools.web_fetch.httpx.AsyncClient", return_value=mock_client):
+        with patch(
+            "cyclops_code.tools.web_fetch.httpx.AsyncClient", return_value=mock_client
+        ):
             tool = WebFetchTool()
             result = await tool.execute(url="https://slow.example.com")
 
