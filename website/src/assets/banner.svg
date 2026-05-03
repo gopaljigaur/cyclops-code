@@ -10,9 +10,6 @@
   <!-- shine -->
   <circle cx="103" cy="90" r="5" fill="#cce7ff" opacity="0.85"/>
 
-  <!-- terminal cursor accent -->
-  <rect x="157" y="58" width="5" height="54" fill="#58a6ff" opacity="0.35" rx="2"/>
-
   <!-- wordmark -->
   <text
     x="172" y="116"
