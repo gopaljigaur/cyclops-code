@@ -34,5 +34,3 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
-[tool.uv.sources]
-cyclops-ai = { path = "../cyclops", editable = true }
