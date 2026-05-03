@@ -40,7 +40,7 @@ class GrepTool(BaseTool):
         if base.is_file():
             files = [base]
         else:
-            files = (
+            files = list(
                 p
                 for p in base.rglob("*")
                 if p.is_file()

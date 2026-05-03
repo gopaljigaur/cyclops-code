@@ -4,14 +4,14 @@ from typing import Optional
 
 import click
 import litellm
-
-litellm.suppress_debug_info = True
-logging.getLogger("LiteLLM").setLevel(logging.ERROR)
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.text import Text
 
 from cyclops_code.config import Config, MCPServerConfig
+
+litellm.suppress_debug_info = True
+logging.getLogger("LiteLLM").setLevel(logging.ERROR)
 
 
 @click.group(
@@ -53,6 +53,7 @@ def main(
 
 # ── mcp subcommand group ──────────────────────────────────────────────────────
 
+
 @main.group("mcp")
 @click.pass_context
 def mcp_group(ctx: click.Context) -> None:
@@ -85,7 +86,9 @@ def mcp_add(
             k, v = pair.split("=", 1)
             env_dict[k] = v
         else:
-            console.print(f"[yellow]warning:[/yellow] ignoring malformed env var: {pair}")
+            console.print(
+                f"[yellow]warning:[/yellow] ignoring malformed env var: {pair}"
+            )
 
     server = MCPServerConfig(name=name, command=command, args=list(args), env=env_dict)
     config.add_mcp_server(server)
@@ -130,6 +133,7 @@ def mcp_list(ctx: click.Context) -> None:
 
 # ── oneshot / repl helpers ────────────────────────────────────────────────────
 
+
 def _run_oneshot(text: str, config: Config, cwd: str) -> None:
     from cyclops import Agent, AgentConfig
     from cyclops_code.prompt import build_system_prompt
@@ -150,7 +154,9 @@ def _run_oneshot(text: str, config: Config, cwd: str) -> None:
         from rich.live import Live
 
         full = ""
-        with Live(console=console, refresh_per_second=15, vertical_overflow="visible") as live:
+        with Live(
+            console=console, refresh_per_second=15, vertical_overflow="visible"
+        ) as live:
             for chunk in agent.stream(text):
                 full += chunk
                 live.update(Markdown(full))
