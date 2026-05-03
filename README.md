@@ -8,7 +8,7 @@
 
   <br/>
 
-  [Install](#install) | [Usage](#usage) | [Tools](#tools) | [MCP](#mcp) | [Config](#config)
+  [Install](#install) | [Usage](#usage) | [Docs](https://cyclops-code.gopalji.me) | [Tools](#tools) | [MCP](#mcp) | [Config](#config)
 
   <br/>
 
