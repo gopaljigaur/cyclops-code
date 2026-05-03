@@ -2,8 +2,11 @@ name: Publish
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -11,11 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write   # required for PyPI trusted publishing
-      contents: write   # required to create GitHub releases
+      id-token: write
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -25,22 +30,40 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Check if version changed
+        id: version_check
+        run: |
+          CURRENT=$(python -c "import tomllib; f=open('pyproject.toml','rb'); d=tomllib.load(f); print(d['project']['version'])")
+          PUBLISHED=$(curl -sf https://pypi.org/pypi/cyclops-code/json \
+            | python -c "import sys,json; print(json.load(sys.stdin)['info']['version'])" \
+            2>/dev/null || echo "0.0.0")
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "published=$PUBLISHED" >> $GITHUB_OUTPUT
+          [ "$CURRENT" != "$PUBLISHED" ] && echo "changed=true" >> $GITHUB_OUTPUT || echo "changed=false" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
+        if: steps.version_check.outputs.changed == 'true'
         run: uv sync --no-sources
 
       - name: Build
+        if: steps.version_check.outputs.changed == 'true'
         run: uv build
 
       - name: Publish to PyPI
+        if: steps.version_check.outputs.changed == 'true'
         run: uv publish
-        # Uses OIDC trusted publishing — no API token needed.
-        # Configure at: https://pypi.org/manage/account/publishing/
 
       - name: Create GitHub release
+        if: steps.version_check.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" \
+          VERSION="${{ steps.version_check.outputs.current }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "v$VERSION"
+          git push origin "v$VERSION" --force
+          gh release create "v$VERSION" \
             dist/* \
-            --title "${{ github.ref_name }}" \
+            --title "v$VERSION" \
             --generate-notes
