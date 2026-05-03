@@ -1,0 +1,42 @@
+---
+title: Cyclops Code
+description: A coding agent for your terminal. Any model.
+template: splash
+hero:
+  tagline: A coding agent for your terminal.
+  image:
+    dark: ../../assets/banner-dark.svg
+    light: ../../assets/banner-light.svg
+  actions:
+    - text: Get Started
+      link: /getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/gopaljigaur/cyclops-code
+      icon: external
+      variant: secondary
+---
+
+import { CardGrid, Card } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Any model" icon="star">
+    Claude, GPT-4o, Gemini, Llama via Ollama, and every other provider LiteLLM supports. Change one flag to switch models.
+  </Card>
+  <Card title="Built-in tools" icon="pencil">
+    Read, Write, Edit, Bash, Glob, Grep, WebFetch. Everything a coding agent needs, ready out of the box.
+  </Card>
+  <Card title="Review before it runs" icon="approve-check">
+    Every tool call shows an approval prompt before executing. Switch to auto mode when you trust what it is doing.
+  </Card>
+  <Card title="MCP servers" icon="puzzle">
+    Connect any MCP server as an additional tool source. Tools from connected servers appear alongside the built-ins.
+  </Card>
+  <Card title="Sessions" icon="document">
+    Save a conversation to disk and resume it later. Context persists across restarts.
+  </Card>
+  <Card title="One-shot or interactive" icon="rocket">
+    Run a single task from the command line or drop into an interactive REPL for multi-turn conversations.
+  </Card>
+</CardGrid>
