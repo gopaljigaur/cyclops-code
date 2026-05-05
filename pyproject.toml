@@ -1,13 +1,13 @@
 [project]
 name = "cyclops-code"
-version = "0.1.0"
+version = "0.1.1"
 description = "A coding agent for your terminal, built on cyclops-ai"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 
 dependencies = [
-    "cyclops-ai>=0.1.0",
+    "cyclops-ai>=0.3.0",
     "prompt_toolkit>=3.0.0",
     "rich>=13.0.0",
     "click>=8.0.0",
